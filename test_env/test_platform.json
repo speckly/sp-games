@@ -1,0 +1,14 @@
+{
+    "1": {
+        "platform_name": "PS5",
+        "description": "Playstation 5"
+    },
+    "2": {
+        "platform_name": "PS6",
+        "description": "Playstation 6"
+    },
+    "3": {
+        "platform_name": "PS7",
+        "description": "Playstation 7"
+    }
+}

@@ -1,0 +1,7 @@
+{
+    "username": "Terry Tan",
+    "email": "terry@gmail.com",
+    "password":"abc123",
+    "type": "Customer",
+    "profile_pic_url": "https://www.abc.com/terry.jpg"
+}
