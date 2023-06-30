@@ -4,28 +4,13 @@ SP Games Backend assignement 1
 
 Models for /game endpoint and database interaction
 Date Created: 6 June 2023
+Deprecated as of 27 June 2023
 
 TODO: Make sure to validate all input, length included, as they raise exceptions
 during query
 */
 
 var db = require('./databaseConfig.js');
-
-function transformGameData(data) {
-    data.platformid = data.platformid.split(",")
-    data.price = data.price.split(",")
-    newList = []
-    if (data.platformid.length != data.price.length) {
-        return null
-    } else {
-        //would be good if i can get the value of price but i can only use foreach on one thing
-        data.platformid.forEach((platform, priceIndex) => {
-            newList.push([data.title, data.description, data.categoryid, data.year, data.price[priceIndex], platform])
-        })
-        return newList
-    }
-}
-
 
 var game = {
     //6: POST /game
@@ -35,27 +20,50 @@ var game = {
             if (err) {//database connection issue
                 return callback(err, null);
             } else {
-                newGameQuery = `INSERT INTO games
-                (title, description, categoryid, year, price, platform)
-                VALUES (?, ?, ?, ?, ?, ?)`
-                transformData = transformGameData(data)
-                if (transformData == null) {
-                    return (err, null) //the data cannot be processed as prices do not correspond to the platforms
-                }
-                transformGameData(data).forEach((gameCol, currentIndex) => {
-                    dbConn.query(newGameQuery, gameCol, (err) => {
-                        if (err) {
+                //Note platformid can contain multiple values
+                //Note foriegn key contstraints platformid and categoryid raises exceptions if not found
+                postQuery = `INSERT INTO games
+                (title, description, categoryid, year, price)
+                VALUES (?, ?, ?, ?, ?)`
+                price = `\"${data.price}\"`
+                dbConn.query(postQuery, 
+                    [data.title, data.description, data.categoryid, data.year, price], 
+                    (err, result) => {
+                        if (err){
                             return callback(err, null)
                         } else {
-                            if (currentIndex == data.length-1) {
-                                dbConn.end()
-                                return callback(null, {"gameid": result.insertId})
-                            }
+                            createPlatformQuery = `CREATE TABLE game${result.insertId}platforms ( 
+                                platformid int NOT NULL AUTO_INCREMENT,
+                                KEY fk_platformid${result.insertId}_idx (platformid),
+                                CONSTRAINT fk_platformid${result.insertId} FOREIGN KEY (platformid) REFERENCES platforms (platformid)
+                            )`
+                            dbConn.query(createPlatformQuery, (err) => {
+                                if (err) { 
+                                    return callback(err, null)
+                                } else {
+                                    insertPlatformQuery = `INSERT INTO game${result.insertId}platforms
+                                    VALUES (?)`
+                                    platforms = data.platformid.split(",")
+                                    lastIndex = platforms.length - 1
+                                    platforms.forEach(async (element, currentIndex) => {
+                                        dbConn.query(insertPlatformQuery, element.trim(), (err) => {
+                                            if (err) { 
+                                                dbConn.end()
+                                                return callback(err, null)
+                                            } else {
+                                                if (currentIndex == lastIndex){
+                                                    dbConn.end()
+                                                    return callback(null, {"gameid": result.insertId})
+                                                }
+                                            }
+                                        })
+                                    })
+                                }
+                            })
                         }
-                    })
+                        
                 })
-            }
-        })
+            }})
     },
     //7: GET /game/:platform
     getByPlatform: function(platform, callback){

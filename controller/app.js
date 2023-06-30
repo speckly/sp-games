@@ -24,7 +24,6 @@ var review = require('../model/review.js')
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 app.use((err, req, res, next) => {
-    console.log("HELOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO")
     if (err instanceof multer.MulterError || err.code === 'LIMIT_FILE_SIZE') {
         res.status(413).send({"error_code": "FILE_TOO_BIG", "message": "Image size should not exceed 1MB"});
     } else {

@@ -56,15 +56,15 @@ CREATE TABLE `games` (
     `gameid` int NOT NULL AUTO_INCREMENT,
     `title` varchar(45) NOT NULL,
     `description` varchar(500) DEFAULT NULL,
-    `price` JSON NOT NULL,
-    -- `platformid` WHOLE BLOODY OTHER TABLE NOT NULL,
+    `price` varchar(60) NOT NULL,
     `categoryid` int DEFAULT NULL,
     `year` int DEFAULT NULL,
     `image` MEDIUMBLOB DEFAULT NULL,
     PRIMARY KEY (`gameid`),
-    -- KEY `fk_platformid_idx` (`platformid`),
+    `platformid` int NOT NULL AUTO_INCREMENT,
     KEY `fk_categoryid_idx` (`categoryid`),
-    -- CONSTRAINT `fk_platformid` FOREIGN KEY (`platformid`) REFERENCES `platforms` (`platformid`),
+    KEY `fk_platformid_idx` (`platformid`),
+    CONSTRAINT `fk_platformid` FOREIGN KEY (`platformid`) REFERENCES `platforms` (`platformid`),
     CONSTRAINT `fk_categoryid` FOREIGN KEY (`categoryid`) REFERENCES `categories` (`categoryid`)
 );
 
