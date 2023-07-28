@@ -14,6 +14,11 @@ const bodyParser = require('body-parser')
 var express = require('express')
 const path = require('path')
 var app = express()
+const jwt = require("jsonwebtoken");
+const JWT_SECRET = require("../config.js"); 
+var cors = require('cors');
+
+
 //models
 var user = require('../model/user.js')
 var category = require('../model/category.js')
@@ -21,6 +26,9 @@ var platform = require('../model/platform.js')
 var game = require('../model/game.js')
 var review = require('../model/review.js')
 
+app.options('*',cors());
+app.use(cors());
+app.use(express.static('./public')); //public html
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({extended: false}))
 app.use((err, req, res, next) => {
@@ -99,13 +107,13 @@ app.post('/platform', function(req, res){
 })
 
 //6: POST /game
-//TODO: HOW THE HELL DO I COMMA THIS WITHOUT SPLITTING
 app.post('/game', function(req, res){
     data = req.body
     game.newGame(data, function(err, result) {
         if (!err) {
             res.status(201).send(result);
         } else {
+            console.log(err)
             res.status(500).send()
         }
     })
@@ -131,6 +139,7 @@ app.delete('/game/:id', function(req, res) {
         if (!err) {
             res.status(204).send();
         } else {
+            console.log(err)
             res.status(500).send()
         }
     })
@@ -227,4 +236,73 @@ app.get('/game/:id/image', function(req, res) {
         }
     })
 })
+ 
+//Assignment 2 helpful endpoint: GET /gameid/:id/
+app.get('/gameid/:id/', function(req, res) {
+    gid = req.params.id.replace(":", "")
+    game.getGamebyID(gid, function (err, result) { 
+        if (!err) {
+            res.status(200).send(result);
+        } else {
+            res.status(500).send()
+        }
+    })
+})
+
+
+app.post('/user/auth/', function(req, res) {
+    jwtSignCB = function (error, token) {
+        if (error) {
+            res.status(401).send();
+            return;
+        } 
+        res.status(200).send({
+            success: true,
+            token: token,
+            user_id: userID,
+        });
+    }
+    data = req.body
+    console.log(data)
+    user.authUser(data, function (err, result) { 
+        if (!err) {
+            if (result == null) {
+                res.status(200).send({success: false});
+                return;
+            }
+            //generate the JSON web token
+            userID = result.userid
+            const payload = {user_id: userID};
+            //Remember password: logs out after 1h else 30d
+            if (data.remember == false){
+                expireIn = '30d'
+                jwt.sign(payload, JWT_SECRET, {algorithm: "HS256", expiresIn: expireIn}, jwtSignCB)
+            } else {
+                expireIn = '1h'
+                jwt.sign(payload, JWT_SECRET, {algorithm: "HS256", expiresIn: expireIn}, jwtSignCB)
+            }
+        } else {
+            res.status(500).send()
+        }
+    })
+})
+
+app.post('/check', (req, res, next) => {
+    const authHeader = req.headers.authorization;
+    if (authHeader === null || authHeader === undefined || !authHeader.startsWith("Bearer ")) {
+        res.status(200).send({success: false});
+        return;
+    }
+    const token = authHeader.replace("Bearer ", "");
+    jwt.verify(token, JWT_SECRET, { algorithms: ["HS256"] }, (error, decodedToken) => {
+        if (error) {
+            res.status(200).send({success: false});
+        } else {
+            res.status(200).send({success: true});
+        }
+        next();
+    });
+})
+
+
 module.exports = app;

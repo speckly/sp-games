@@ -1,16 +1,16 @@
 //Author: Ritchie Yapp 
 //https://github.com/speckly
 
-function transformGameData(data) {
-    data.platformid = data.platformid.split(",")
-    data.price = data.price.split(",")
+function transformGameData(inp) {
+    inp.platformid = inp.platformid.split(",")
+    inp.price = inp.price.split(",")
     newList = []
-    if (data.platformid.length != data.price.length) {
+    if (inp.platformid.length != inp.price.length) {
         return null
     } else {
         //would be good if i can get the value of price but i can only use foreach on one thing
-        data.platformid.forEach((platform, priceIndex) => {
-            newList.push([data.title, data.description, data.categoryid, data.year, data.price[priceIndex], platform])
+        inp.platformid.forEach((platform, priceIndex) => {
+            newList.push([inp.price[priceIndex], platform])
         })
         return newList
     }
@@ -36,4 +36,3 @@ test_error_case = {
 
 
 console.log(transformGameData(test_case))
-console.log(transformGameData(test_error_case))

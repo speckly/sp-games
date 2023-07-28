@@ -14,6 +14,7 @@ USE `sp_games`;
 
 -- Release constraints if database has been initialized and this script is being run again
 DROP TABLE IF EXISTS `reviews`;
+DROP TABLE IF EXISTS `gamepricing`;
 DROP TABLE IF EXISTS `games`;
 DROP TABLE IF EXISTS `user`;
 DROP TABLE IF EXISTS `categories`;
@@ -56,16 +57,29 @@ CREATE TABLE `games` (
     `gameid` int NOT NULL AUTO_INCREMENT,
     `title` varchar(45) NOT NULL,
     `description` varchar(500) DEFAULT NULL,
-    `price` varchar(60) NOT NULL,
+    -- `price` varchar(60) NOT NULL,
     `categoryid` int DEFAULT NULL,
     `year` int DEFAULT NULL,
+    `created_at` timestamp NULL DEFAULT CURRENT_TIMESTAMP,
     `image` MEDIUMBLOB DEFAULT NULL,
     PRIMARY KEY (`gameid`),
-    `platformid` int NOT NULL AUTO_INCREMENT,
+    -- `platformid` int NOT NULL,
     KEY `fk_categoryid_idx` (`categoryid`),
+    -- KEY `fk_platformid_idx` (`platformid`),
+    -- CONSTRAINT `fk_platformid` FOREIGN KEY (`platformid`) REFERENCES `platforms` (`platformid`),
+    CONSTRAINT `fk_categoryid` FOREIGN KEY (`categoryid`) REFERENCES `categories` (`categoryid`)
+);
+
+CREATE TABLE `gamepricing` (
+    `id` int NOT NULL AUTO_INCREMENT,
+    `platformid` int NOT NULL,
+    `gameid` int NOT NULL, 
+    `price` varchar(60) NOT NULL,
+    PRIMARY KEY (`id`),
     KEY `fk_platformid_idx` (`platformid`),
     CONSTRAINT `fk_platformid` FOREIGN KEY (`platformid`) REFERENCES `platforms` (`platformid`),
-    CONSTRAINT `fk_categoryid` FOREIGN KEY (`categoryid`) REFERENCES `categories` (`categoryid`)
+    KEY `fk_gameid_pricing_idx` (`gameid`),
+    CONSTRAINT `fk_gameid_pricing` FOREIGN KEY (`gameid`) REFERENCES `games` (`gameid`)
 );
 
 

@@ -30,9 +30,9 @@ queries = {
     
     "./test_game.json":  {
         "query": `INSERT INTO games
-        (title, description, price, platformid, categoryid, year)
+        (title, description, categoryid, year)
         VALUES (?, ?, ?, ?, ?, ?)`,
-        "fields": ["title", "description", "price", "platformid", "categoryid", "year"]
+        "fields": ["title", "description", "categoryid", "year"]
     },
     
     "./test_review.json": {
@@ -62,7 +62,7 @@ function insertTest(fileName) {
         } else {
             if (fileName == "./test_game.json"){
                 data = require(fileName)
-                game.newGame(data, function(err, result) {
+                game.newGame(data, function(err) {
                     if (err) {
                         console.log(`Error in game init: ${err}`)
                     }

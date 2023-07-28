@@ -11,21 +11,20 @@ during query
 
 var db = require('./databaseConfig.js');
 
-function transformGameData(data) {
-    data.platformid = data.platformid.split(",")
-    data.price = data.price.split(",")
+function transformGameData(inp) {
+    inp.platformid = inp.platformid.split(",")
+    inp.price = inp.price.split(",")
     newList = []
-    if (data.platformid.length != data.price.length) {
+    if (inp.platformid.length != inp.price.length) {
         return null
     } else {
         //would be good if i can get the value of price but i can only use foreach on one thing
-        data.platformid.forEach((platform, priceIndex) => {
-            newList.push([data.title, data.description, data.categoryid, data.year, data.price[priceIndex], platform])
+        inp.platformid.forEach((platform, priceIndex) => {
+            newList.push([platform, inp.price[priceIndex]])
         })
         return newList
     }
 }
-
 
 var game = {
     //6: POST /game
@@ -36,24 +35,34 @@ var game = {
                 return callback(err, null);
             } else {
                 newGameQuery = `INSERT INTO games
-                (title, description, categoryid, year, price, platform)
-                VALUES (?, ?, ?, ?, ?, ?)`
+                (title, description, categoryid, year)
+                VALUES (?, ?, ?, ?)`
+                newGamePriceQuery = `INSERT INTO gamepricing
+                (gameid, platformid, price)
+                VALUES (?, ?, ?)`
                 transformData = transformGameData(data)
                 if (transformData == null) {
-                    return (err, null) //the data cannot be processed as prices do not correspond to the platforms
-                }
-                transformGameData(data).forEach((gameCol, currentIndex) => {
-                    dbConn.query(newGameQuery, gameCol, (err) => {
+                    err = {"error": "price length does not correspond with platformid length"}
+                    return callback(err, null) //the data cannot be processed as prices do not correspond to the platforms
+                } else {
+                    gameData = [data.title, data.description, data.categoryid, data.year] 
+                    dbConn.query(newGameQuery, gameData, (err, result) => {
                         if (err) {
                             return callback(err, null)
                         } else {
-                            if (currentIndex == data.length-1) {
-                                dbConn.end()
-                                return callback(null, {"gameid": result.insertId})
-                            }
+                            gameID = result.insertId
+                            transformData.forEach((gameCol, currentIndex) => {
+                                dbConn.query(newGamePriceQuery,[gameID].concat(gameCol), (err, result) => {
+                                    if (err) {
+                                        return callback(err, null)
+                                    } else if (currentIndex == transformData.length-1) {
+                                        return callback(null, {"gameid": gameID})
+                                    }
+                                })
+                            })
                         }
                     })
-                })
+                }
             }
         })
     },
@@ -65,47 +74,20 @@ var game = {
                 return callback(err, null);
             } else {
                 //Note foriegn key contstraints platformid and categoryid raises exceptions if not found
-                getIDsQuery = `SELECT gameid FROM games;`
-                dbConn.query(getIDsQuery, (err, result) => {
+                getIDsQuery = `SELECT games.gameid, games.title, games.description,
+                gamepricing.price, platforms.platform_name AS platform, 
+                games.categoryid AS catid, categories.catname, games.year, games.created_at
+                FROM gamepricing 
+                INNER JOIN platforms ON platforms.platformid = gamepricing.platformid
+                INNER JOIN games ON gamepricing.gameid = games.gameid
+                INNER JOIN categories ON games.categoryid = categories.categoryid
+                WHERE platforms.platform_name = ?;                
+                `
+                dbConn.query(getIDsQuery, platform, (err, result) => {
                     if (err){
                         return callback(err, null)
                     } else {
-                        respon = []
-                        queryIDs = []
-                        result.forEach((gameidObj) => {
-                            findQuery = `SELECT * FROM game${gameidObj.gameid}platforms WHERE platformid = ?`
-                            dbConn.query(findQuery, platform, (err, truth) => {
-                                if (err){
-                                    return callback(err, null)
-                                } else {
-                                    if (truth.length == 1){ //platform is present so query gameid and append
-                                        queryIDs.push(gameidObj.gameid)
-                                    }
-                                    //return within the loop as outside the loop will return too early (foreach is async funct)
-                                }
-                            })
-                        })
-                        setTimeout(() => {
-                            lastIndex = queryIDs.length - 1 
-                            queryIDs.forEach((id, currentIndex) => {
-                                getGamesQuery = `SELECT games.gameid, games.title, games.description, games.price, platforms.platform_name, games.categoryid AS catid, categories.catname, games.year FROM games, platforms, categories 
-                                WHERE platforms.platformid = ? and games.gameid = ?;`
-                                dbConn.query(getGamesQuery, [platform, id], async (err, result) => {
-                                    if (err){
-                                        return callback(err, null)
-                                    } else {
-                                        result = result[0] //strip square bracket
-                                        result.price = `${result.price.slice(1,-1)}` //string notation per requirement
-                                        respon.push(result) 
-                                        if (currentIndex == lastIndex) {
-                                            dbConn.end()
-                                            return callback(null, respon)
-                                        }
-                                    }
-                                })
-                            })
-                        }, 5*result.length) //can be improved
-                        
+                        return callback(err, result)
                     }   
                 })
             }})
@@ -118,14 +100,13 @@ var game = {
                 return callback(err);
             } else {
                 //Note foriegn key contstraints platformid and categoryid raises exceptions if not found
-                deleteGameQuery = `DELETE FROM games WHERE gameid = ?;` //Seems to work in workbench please test again
-                dbConn.query(deleteGameQuery, [id], (err) => {
+                deleteGamePriceQuery = `DELETE FROM gamepricing WHERE gameid = ?;`
+                dbConn.query(deleteGamePriceQuery, [id], (err) => {
                     if (err){
                         return callback(err)
                     } else {
-                        tableName = `game${id}platforms`
-                        deleteGamePlatformsQuery = `DROP TABLE ??;` //?? placeholder for identifier
-                        dbConn.query(deleteGamePlatformsQuery, tableName, (err) => {
+                        deleteGameQuery = `DELETE FROM games WHERE gameid = ?;` 
+                        dbConn.query(deleteGameQuery, [id], (err) => {
                             dbConn.end()
                             if (err){
                                 return callback(err)
@@ -150,38 +131,41 @@ var game = {
                 SET title = ?, 
                 description = ?, 
                 categoryid = ?, 
-                year = ?, 
-                price = ?
+                year = ?
                 WHERE gameid = ?;`
-                price = `\"${data.price}\"`
                 dbConn.query(updateGameQuery, 
-                    [data.title, data.description, data.categoryid, data.year, price, id], 
+                    [data.title, data.description, data.categoryid, data.year, id], 
                     (err) => {
                         if (err){
                             return callback(err)
                         } else {
-                            tableName = `game${id}platforms`
-                            deleteGamePlatformQuery = `DELETE FROM ?? WHERE platformid > 0` //delete all
-                            dbConn.query(deleteGamePlatformQuery, tableName, (err) => {
-                                if (err){
-                                    return callback(err)
-                                } else {
-                                    insertNewPlatformQuery = `INSERT INTO ?? VALUES (?)`
-                                    platforms = data.platformid.split(",")
-                                    lastIndex = platforms.length - 1
-                                    platforms.forEach(async (element, currentIndex) => {
-                                        dbConn.query(insertNewPlatformQuery, [tableName ,element.trim()], (err) => {
-                                            if (err) { 
-                                                dbConn.end()
-                                                return callback(err)
-                                            } else if (currentIndex == lastIndex){
-                                                dbConn.end()
-                                                return callback(null)
-                                            }
+                            transformData = transformGameData(data)
+                            if (transformData == null) {
+                                err = {"error": "price length does not correspond with platformid length"}
+                                return callback(err) //the data cannot be processed as prices do not correspond to the platforms
+                            } else {
+                                deleteGamePriceQuery = `DELETE FROM gamepricing WHERE gameid = ?`
+                                dbConn.query(deleteGamePriceQuery, id, (err) => {
+                                    if (err) {
+                                        return callback(err)
+                                    } else {
+                                        updateGamePriceQuery = `INSERT INTO gamepricing
+                                        (gameid, platformid, price)
+                                        VALUES (?, ?, ?)`
+                                        transformData.forEach((gameCol, currentIndex) => {
+                                            dbConn.query(updateGamePriceQuery,[id].concat(gameCol), (err) => {
+                                                if (err) {
+                                                    return callback(err, null)
+                                                } else if (currentIndex == transformData.length-1) {
+                                                    dbConn.end()
+                                                    return callback(null)
+                                                }
+                                            })
+                                            
                                         })
-                                    })
-                                }
-                            })
+                                    }
+                                })
+                            }
                         }
                         
                 })
@@ -224,6 +208,24 @@ var game = {
                         return callback(err, null)
                     }
                     return callback(null, img[0].image)
+                })
+            }})
+    },
+    //Assignment 2 helpful endpoint: GET /gameid/:id/
+    getGamebyID: function(gid, callback) {
+        var dbConn = db.getConnection();
+        dbConn.connect(function (err) {
+            if (err) {//database connection issue
+                return callback(err);
+            } else {
+                const getImageQuery = 
+                `SELECT gameid, title, description, categoryid, year, created_at from games WHERE gameid = ?`
+                dbConn.query(getImageQuery, gid, (err, result) => {
+                    dbConn.end()
+                    if (err){
+                        return callback(err, null)
+                    }
+                    return callback(null, result[0])
                 })
             }})
     }

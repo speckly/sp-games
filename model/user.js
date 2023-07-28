@@ -54,7 +54,7 @@ var user = {
             }
         })
     },
-    //3: GET /users/:id
+    //3: GET /users/:id (Legacy)
     getUserbyID: function (userID, callback){
         var dbConn = db.getConnection();
         dbConn.connect(function (err) {
@@ -65,12 +65,49 @@ var user = {
                 dbConn.query(getQuery, [userID] ,(err, result) => {
                     dbConn.end()
                     if (err){
-                        console.log(err)
                         return callback(err, null)
                     }
                     return callback(null, result[0]) //only one user required
                 })
             }})
+    },
+    //Assignment 2 Endpoint, similar to Endpoint 3
+    // POST /users/auth
+    authUser: function (data, callback) {
+        var dbConn = db.getConnection();
+        dbConn.connect(function (err) {
+            if (err) { //database connection issue
+                return callback(err, null);
+            } else {
+                getQuery = `SELECT * FROM user WHERE email = ? and password = ?;`
+                dbConn.query(getQuery, [data.email, data.password] ,(err, result) => {
+                    dbConn.end()
+                    if (err){
+                        return callback(err, null)
+                    }
+                    return callback(null, result[0]) //only one user required
+                })
+            }})
+    },
+    verifyToken: function (req,res,next){
+        var token=req.headers['authorization']; //retrieve authorization header’s content
+        if(!token || !token.includes('Bearer')){ //process the token
+            res.status(403);
+            return res.send({auth:'false',message:'Not authorized!'});
+        }else{
+            token=token.split('Bearer ')[1]; //obtain the token’s value
+            console.log(token);
+            jwt.verify(token,config.key,function(err,decoded){//verify token
+                if (err){
+                    res.status(403);
+                    return res.end({auth:false,message:'Not authorized!'});
+                }else{
+                    req.userid=decoded.userid; //decode the userid and store in req for use
+                    req.role=decoded.role; //decode the role and store in req for use
+                    next();
+                }
+            });
+        }
     }
 }
 
