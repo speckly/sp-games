@@ -22,10 +22,16 @@ function createProfilePictureElement(url) {
 }
 
 function clearCookies() {
-    var cookies = document.cookie.split(";");
-    for (var i = 0; i < cookies.length; i++) {
-        document.cookie = cookies[i] + "=; expires=" + new Date(0).toUTCString();
+    console.log("Clear cookie")
+    const cookies = document.cookie.split(";");
+
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i];
+        const eqPos = cookie.indexOf("=");
+        const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
+        document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
     }
+
 }
 function getCookieValue(cookieName) {
     var name = cookieName + "=";
@@ -44,6 +50,7 @@ function transformButtonFront(nullData, userData) { //Used by transform buttons 
     $("#loginButton").attr("id", "profileButton");
     $("#registerButton").attr("id", "logoutButton");
     $('#profileButton').text(`Hello ${userData.username}`);
+    $('#profileButton').attr("href", "profile.html");
     //Insert profile picture if there is data
     if (!nullData) {
         const profileButton = document.getElementById('profileButton');
@@ -52,13 +59,14 @@ function transformButtonFront(nullData, userData) { //Used by transform buttons 
         profileButton.insertBefore(profilePictureElement, profileButton.firstChild);
     }
     $('#logoutButton').text('Logout');
+    $('#logoutButton').attr('href', window.location.href);
     // Add a separate script to handle the logout functionality
     $("#logoutButton").click(function () {
         //Clear cookies
         clearCookies()
         location.reload() //Reload
     });
-    
+
 }
 
 function transformButtons(userID) {
@@ -68,7 +76,7 @@ function transformButtons(userID) {
         type: 'GET',
         headers: {
         },
-        success: function (userData) { 
+        success: function (userData) {
             noData = false
             transformButtonFront(noData, userData)
         },

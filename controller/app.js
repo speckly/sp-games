@@ -305,4 +305,14 @@ app.post('/check', (req, res, next) => {
 })
 
 
+app.get("/category", (req, res) => {
+    category.getAllCategories((err, result) => {
+        if (err) {
+            res.status(500).send()
+        } else {
+            res.status(200).send(result)
+        }
+    })
+})
+
 module.exports = app;

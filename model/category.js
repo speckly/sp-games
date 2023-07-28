@@ -30,7 +30,24 @@ var category = {
                     return callback(null)
                 })
             }})
-    }
+    },
+    //Extra: GET /category
+    getAllCategories: function (callback){
+        var dbConn = db.getConnection();
+        dbConn.connect(function (err) {
+            if (err) {//database connection issue
+                return callback(err, null);
+            } else {
+                getQuery = `SELECT * FROM categories`
+                dbConn.query(getQuery, (err, result) => {
+                    dbConn.end()
+                    if (err){
+                        return callback(err, null)
+                    }
+                    return callback(null, result)
+                })
+            }})
+    },
 };
 
 module.exports = category;
