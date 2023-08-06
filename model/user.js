@@ -10,7 +10,6 @@ during query
 */
 
 var db = require('./databaseConfig.js')
-var sha256 = require('js-sha256')
 
 var user = {
     //1: GET /users/
@@ -42,7 +41,7 @@ var user = {
                 var postQuery = `INSERT INTO user (username, email, password, type, profile_pic_url) 
                 VALUES (?, ?, ?, ?, ?);`
                 conn.query(postQuery, 
-                    [data.username, data.email, sha256(data.password), data.type, data.profile_pic_url],
+                    [data.username, data.email, data.password, data.type, data.profile_pic_url],
                     function(err, result){
                         conn.end()
                         if (err){
@@ -94,20 +93,38 @@ var user = {
         if(!token || !token.includes('Bearer')){ //process the token
             res.status(403);
             return res.send({auth:'false',message:'Not authorized!'});
-        }else{
+        } else{
             token=token.split('Bearer ')[1]; //obtain the token’s value
             console.log(token);
             jwt.verify(token,config.key,function(err,decoded){//verify token
                 if (err){
                     res.status(403);
                     return res.end({auth:false,message:'Not authorized!'});
-                }else{
+                } else {
                     req.userid=decoded.userid; //decode the userid and store in req for use
                     req.role=decoded.role; //decode the role and store in req for use
                     next();
                 }
             });
         }
+    },
+    uploadProfilePic: (src, uid, callback) => {
+        var dbConn = db.getConnection();
+        dbConn.connect(function (err) {
+            if (err) {//database connection issue
+                return callback(err);
+            } else {
+                insertPfQuery = `UPDATE user 
+                SET profile_pic_url = ?
+                WHERE userid = ?;`
+                dbConn.query(insertPfQuery, [src, uid], (err) => {
+                    if (err) {
+                        return callback(err)
+                    } else {
+                        return callback(null)
+                    }
+                })
+            }})
     }
 }
 

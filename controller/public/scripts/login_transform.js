@@ -1,37 +1,30 @@
 //Author: Ritchie Yapp
 //This script transforms the frontend should the token be correct
 
-
 // Function to create the profile picture element
 function createProfilePictureElement(url) {
     const pictureContainer = document.createElement('span');
     pictureContainer.classList.add('profile-picture');
-
     const picture = document.createElement('img');
     picture.src = url;
-    picture.alt = 'Profile Picture';
     pictureContainer.appendChild(picture);
     picture.style.maxWidth = '25px';
     picture.style.maxHeight = '25px';
     picture.style.borderRadius = '25%';
     picture.style.marginRight = '10px';
-
     pictureContainer.appendChild(picture);
-
     return pictureContainer;
 }
 
 function clearCookies() {
-    console.log("Clear cookie")
+    console.log("User not logged in or session expired")
     const cookies = document.cookie.split(";");
-
     for (let i = 0; i < cookies.length; i++) {
         const cookie = cookies[i];
         const eqPos = cookie.indexOf("=");
         const name = eqPos > -1 ? cookie.substring(0, eqPos) : cookie;
         document.cookie = name + "=;expires=Thu, 01 Jan 1970 00:00:00 GMT;path=/";
     }
-
 }
 function getCookieValue(cookieName) {
     var name = cookieName + "=";

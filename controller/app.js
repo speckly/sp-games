@@ -113,7 +113,6 @@ app.post('/game', function(req, res){
         if (!err) {
             res.status(201).send(result);
         } else {
-            console.log(err)
             res.status(500).send()
         }
     })
@@ -121,12 +120,12 @@ app.post('/game', function(req, res){
 
 //7: GET /game/:platform
 app.get('/game/:platform', function(req, res){
-    platform = req.params.platform.replace(":", "")
-    game.getByPlatform(platform, function(err, result) {
+    sort = req.query.sortBy
+    pf = req.params.platform.replace(":", "")
+    game.getByPlatform(pf, sort, function(err, result) {
         if (!err) {
             res.status(200).send(result);
         } else {
-            console.log(err)
             res.status(500).send()
         }
     })
@@ -139,7 +138,6 @@ app.delete('/game/:id', function(req, res) {
         if (!err) {
             res.status(204).send();
         } else {
-            console.log(err)
             res.status(500).send()
         }
     })
@@ -183,8 +181,7 @@ app.get('/game/:id/review', function(req, res) {
     })
 })
 
-//Bonus endpoint: PUT /game/:id/image
-//Request schema, {image: <image>}
+//Endpoint 12 dependency
 function checkFileType(file, callback) {
     const filetypes = /jpeg|jpg/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
@@ -195,6 +192,9 @@ function checkFileType(file, callback) {
         callback(400);
     }
 }
+
+//Bonus endpoint 12: PUT /game/:id/image
+//Request schema, {image: <image>}
 app.put('/game/:id/image', function(req, res) {
     upload(req, res, function (err) {
         if (err instanceof multer.MulterError) {
@@ -202,8 +202,6 @@ app.put('/game/:id/image', function(req, res) {
         } else {
             const file = req.file;
             gid = req.params.id.replace(":", "")
-            //check if file is jpg under 
-            //process
             checkFileType(file, function (err){
                 if (err) {
                     res.status(400).send({"error_code": "BAD_FILE_EXTENSION", "message": "Only images with extension jpg are accepted"})
@@ -222,7 +220,7 @@ app.put('/game/:id/image', function(req, res) {
     })
 })
 
-//Bonus endpoint: GET /game/:id/image
+//Bonus endpoint 13: GET /game/:id/image
 app.get('/game/:id/image', function(req, res) {
     gid = req.params.id.replace(":", "")
     game.getImagebyID(gid, function (err, image) { 
@@ -237,7 +235,7 @@ app.get('/game/:id/image', function(req, res) {
     })
 })
  
-//Assignment 2 helpful endpoint: GET /gameid/:id/
+//Endpoint 14
 app.get('/gameid/:id/', function(req, res) {
     gid = req.params.id.replace(":", "")
     game.getGamebyID(gid, function (err, result) { 
@@ -249,7 +247,7 @@ app.get('/gameid/:id/', function(req, res) {
     })
 })
 
-
+//Endpoint 15
 app.post('/user/auth/', function(req, res) {
     jwtSignCB = function (error, token) {
         if (error) {
@@ -263,7 +261,6 @@ app.post('/user/auth/', function(req, res) {
         });
     }
     data = req.body
-    console.log(data)
     user.authUser(data, function (err, result) { 
         if (!err) {
             if (result == null) {
@@ -287,6 +284,7 @@ app.post('/user/auth/', function(req, res) {
     })
 })
 
+//Endpoint 16
 app.post('/check', (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader === null || authHeader === undefined || !authHeader.startsWith("Bearer ")) {
@@ -305,12 +303,39 @@ app.post('/check', (req, res, next) => {
 })
 
 
+//Endpoint 17: Get all categories
 app.get("/category", (req, res) => {
     category.getAllCategories((err, result) => {
         if (err) {
             res.status(500).send()
         } else {
             res.status(200).send(result)
+        }
+    })
+})
+
+
+//Endpoint 18: Get all platforms
+app.get("/platform", (req, res) => {
+    platform.getAllPlatform((err, result) => {
+        if (err) {
+            res.status(500).send()
+        } else {
+            res.status(200).send(result)
+        }
+    })
+})
+
+//Endpoint 19: Update profile picture
+app.put('/users/:id/pfp', function(req, res) {
+    id = req.params.id.replace(":", "")
+    data = req.body
+    user.uploadProfilePic(data.src, id, function(err) {
+        if (!err) {
+            res.status(204).send();
+        } else {
+            console.log(err)
+            res.status(500).send()
         }
     })
 })

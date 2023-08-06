@@ -37,6 +37,10 @@
     <script src="./scripts/login_transform.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
     <script src="./scripts/login.js"></script>
+    <script src="./scripts/filter.js"></script>
+    <script src="./scripts/cart.js"></script>
+    <script src="./scripts/profile.js"></script>
+    <script src="./scripts/update_platforms.js"></script>
 </head>
 
 <body>
@@ -67,9 +71,9 @@
                     <i class="fas fa-heart text-primary"></i>
                     <span class="badge">0</span>
                 </a>
-                <a href="" class="btn border">
+                <a href="cart.html" class="btn border">
                     <i class="fas fa-shopping-cart text-primary"></i>
-                    <span class="badge">0</span>
+                    <span class="badge" id="shopping-cart">0</span>
                 </a>
             </div>
         </div>
@@ -156,48 +160,15 @@
             </div>
 
             <div class="row">
-                <div class="col-lg-4">
+                <div class="col-lg-4" id="pfpContainer">
                     <div class="card mb-4">
                         <div class="card-body text-center">
                             <img src="https://mdbcdn.b-cdn.net/img/Photos/new-templates/bootstrap-chat/ava3.webp"
-                                alt="avatar" class="rounded-circle img-fluid" style="width: 150px;">
-                            <h5 class="my-3">John Smith</h5>
-                            <p class="text-muted mb-1">Full Stack Developer</p>
-                            <p class="text-muted mb-4">Bay Area, San Francisco, CA</p>
-                            <div class="d-flex justify-content-center mb-2">
-                                <button type="button" class="btn btn-primary">Follow</button>
-                                <button type="button" class="btn btn-outline-primary ms-1">Message</button>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="card mb-4 mb-lg-0">
-                        <div class="card-body p-0">
-                            <ul class="list-group list-group-flush rounded-3">
-                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <i class="fas fa-globe fa-lg text-warning"></i>
-                                    <p class="mb-0">https://mdbootstrap.com</p>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <i class="fab fa-github fa-lg" style="color: #333333;"></i>
-                                    <p class="mb-0">mdbootstrap</p>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <i class="fab fa-twitter fa-lg" style="color: #55acee;"></i>
-                                    <p class="mb-0">@mdbootstrap</p>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <i class="fab fa-instagram fa-lg" style="color: #ac2bac;"></i>
-                                    <p class="mb-0">mdbootstrap</p>
-                                </li>
-                                <li class="list-group-item d-flex justify-content-between align-items-center p-3">
-                                    <i class="fab fa-facebook-f fa-lg" style="color: #3b5998;"></i>
-                                    <p class="mb-0">mdbootstrap</p>
-                                </li>
-                            </ul>
+                                alt="avatar" class="rounded-circle img-fluid" style="width: 150px;" id="profile_pic">
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-8">
+                <div class="col-lg-8" id="detailContainer">
                     <div class="card mb-4">
                         <div class="card-body">
                             <div class="row">
@@ -205,7 +176,7 @@
                                     <p class="mb-0">Full Name</p>
                                 </div>
                                 <div class="col-sm-9">
-                                    <p class="text-muted mb-0">Johnatan Smith</p>
+                                    <p class="text-muted mb-0" id="username"></p>
                                 </div>
                             </div>
                             <hr>
@@ -214,107 +185,117 @@
                                     <p class="mb-0">Email</p>
                                 </div>
                                 <div class="col-sm-9">
-                                    <p class="text-muted mb-0">example@example.com</p>
+                                    <p class="text-muted mb-0" id="emailaddress"></p>
                                 </div>
                             </div>
                             <hr>
                             <div class="row">
                                 <div class="col-sm-3">
-                                    <p class="mb-0">Phone</p>
+                                    <p class="mb-0">Type</p>
                                 </div>
                                 <div class="col-sm-9">
-                                    <p class="text-muted mb-0">(097) 234-5678</p>
+                                    <p class="text-muted mb-0" id="role"></p>
                                 </div>
                             </div>
                             <hr>
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <p class="mb-0">Mobile</p>
-                                </div>
-                                <div class="col-sm-9">
-                                    <p class="text-muted mb-0">(098) 765-4321</p>
-                                </div>
-                            </div>
-                            <hr>
-                            <div class="row">
-                                <div class="col-sm-3">
-                                    <p class="mb-0">Address</p>
-                                </div>
-                                <div class="col-sm-9">
-                                    <p class="text-muted mb-0">Bay Area, San Francisco, CA</p>
-                                </div>
+                            <div class="card-body p-0">
+                                <form id="profilePicForm">
+                                    <div class="form-group">
+                                        <label for="profilePicUrl">Profile Picture URL</label>
+                                        <input type="url" class="form-control" id="profilePicUrl" placeholder="Enter profile picture URL">
+                                    </div>
+                                    <button type="submit" class="btn btn-primary">Submit</button>
+                                </form>
                             </div>
                         </div>
                     </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="card mb-4 mb-md-0">
-                                <div class="card-body">
-                                    <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project
-                                        Status
-                                    </p>
-                                    <p class="mb-1" style="font-size: .77rem;">Web Design</p>
-                                    <div class="progress rounded" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 80%"
-                                            aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
-                                    <div class="progress rounded" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 72%"
-                                            aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
-                                    <div class="progress rounded" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 89%"
-                                            aria-valuenow="89" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
-                                    <div class="progress rounded" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 55%"
-                                            aria-valuenow="55" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
-                                    <div class="progress rounded mb-2" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 66%"
-                                            aria-valuenow="66" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
+                </div>
+            </div>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-8" id="adminGameCard" style="display: none;">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Add New Game</h5>
+                        <!-- Add New Game Form -->
+                        <form id="addGameForm">
+                            <div class="form-group">
+                                <label for="gameTitle">Title</label>
+                                <input type="text" class="form-control" id="gameTitle" placeholder="Enter game title">
                             </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="card mb-4 mb-md-0">
-                                <div class="card-body">
-                                    <p class="mb-4"><span class="text-primary font-italic me-1">assigment</span> Project
-                                        Status
-                                    </p>
-                                    <p class="mb-1" style="font-size: .77rem;">Web Design</p>
-                                    <div class="progress rounded" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 80%"
-                                            aria-valuenow="80" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Website Markup</p>
-                                    <div class="progress rounded" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 72%"
-                                            aria-valuenow="72" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <p class="mt-4 mb-1" style="font-size: .77rem;">One Page</p>
-                                    <div class="progress rounded" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 89%"
-                                            aria-valuenow="89" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Mobile Template</p>
-                                    <div class="progress rounded" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 55%"
-                                            aria-valuenow="55" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                    <p class="mt-4 mb-1" style="font-size: .77rem;">Backend API</p>
-                                    <div class="progress rounded mb-2" style="height: 5px;">
-                                        <div class="progress-bar" role="progressbar" style="width: 66%"
-                                            aria-valuenow="66" aria-valuemin="0" aria-valuemax="100"></div>
-                                    </div>
-                                </div>
+                            <div class="form-group">
+                                <label for="gameDescription">Description</label>
+                                <textarea class="form-control" id="gameDescription" placeholder="Enter game description"></textarea>
                             </div>
+                            <div class="form-group">
+                                <label for="gamePrice">Price (comma-separated)</label>
+                                <input type="text" class="form-control" id="gamePrice" placeholder="Enter game price">
+                            </div>
+                            <div class="form-group">
+                                <label for="gamePlatformIDs">Platform IDs (comma-separated)</label>
+                                <input type="text" class="form-control" id="gamePlatformIDs" placeholder="Enter platform IDs">
+                            </div>
+                            <div class="form-group">
+                                <label for="gameCategoryIDs">Category ID</label>
+                                <input type="text" class="form-control" id="gameCategoryIDs" placeholder="Enter category IDs">
+                            </div>
+                            <div class="form-group">
+                                <label for="gameYear">Year</label>
+                                <input type="number" class="form-control" id="gameYear" placeholder="Enter game release year">
+                            </div>
+                            <button type="submit" id="gameSubmitBtn" class="btn btn-primary">Add New Game</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-8" id="adminPlatformCard" style="display: none;">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Add New Platform</h5>
+                        <!-- Add New Platform Form -->
+                        <form id="addPlatformForm">
+                            <div class="form-group">
+                                <label for="platformName">Platform Name</label>
+                                <input type="text" class="form-control" id="platformName" placeholder="Enter platform name">
+                            </div>
+                            <div class="form-group">
+                                <label for="platformDescription">Platform Description</label>
+                                <textarea class="form-control" id="platformDescription" placeholder="Enter platform description"></textarea>
+                            </div>
+                            <button type="submit" id="platformSubmitBtn" class="btn btn-primary">Add New Platform</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-8" id="adminGameIdImageCard" style="display: none;">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Update game image</h5>
+                        <div class="card-text">
+                            <form id="gameIdImageForm">
+                                <div class="form-group">
+                                    <label for="gameId">Game ID</label>
+                                    <input type="text" class="form-control" id="gameId" placeholder="Enter Game ID">
+                                </div>
+                                <div class="form-group">
+                                    <label for="imageUpload">Upload Image</label>
+                                    <input type="file" class="form-control" id="imageUpload">
+                                </div>
+                                <button type="submit" class="btn btn-primary">Submit</button>
+                            </form>
                         </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-8" id="deleteGameCard" style="display: none;">
+                <div class="card mb-4">
+                    <div class="card-body">
+                        <h5 class="card-title">Delete Game</h5>
+                        <div class="form-group">
+                            <label for="gameIdInput">Game ID</label>
+                            <input type="text" class="form-control" id="gameIdInput" placeholder="Enter Game ID">
+                        </div>
+                        <button type="button" class="btn btn-danger" id="deleteGameButton">Delete</button>
                     </div>
                 </div>
             </div>
@@ -396,6 +377,7 @@
     </div>
     <!-- Footer End -->
 
+    <div id="notification" style="display: none; position: fixed; bottom: 100px; right: 20px; background-color: rgb(209, 156, 151); color: black; padding: 10px; border-radius: 4px;"></div>
     <!-- Back to Top -->
     <a href="#" class="btn btn-primary back-to-top"><i class="fa fa-angle-double-up"></i></a>
 

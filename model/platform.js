@@ -29,7 +29,23 @@ var platform = {
                     return callback(null)
                 })
             }})
-    }
+    },
+    getAllPlatform: function(callback) {
+        var dbConn = db.getConnection();
+        dbConn.connect(function (err) {
+            if (err) {//database connection issue
+                return callback(err, null);
+            } else {
+                postQuery = `SELECT platform_name FROM platforms`
+                dbConn.query(postQuery, (err, platforms) => {
+                    dbConn.end()
+                    if (err){
+                        return callback(err, null)
+                    }
+                    return callback(null, platforms)
+                })
+            }})
+    },
 };
 
 module.exports = platform;

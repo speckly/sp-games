@@ -41,7 +41,7 @@ var review = {
                 return callback(err, null);
             } else {
                 //TODO: modify query to replace returned userid with username
-                getByIDQuery = `SELECT reviews.gameid, reviews.content, reviews.rating, user.username, reviews.created_at 
+                getByIDQuery = `SELECT reviews.gameid, reviews.content, reviews.rating, user.username, user.userid, user.profile_pic_url, reviews.created_at 
                 FROM reviews INNER JOIN user ON reviews.userid=user.userid
                 WHERE reviews.gameid = ?`
                 dbConn.query(getByIDQuery, gid, (err, result) => {

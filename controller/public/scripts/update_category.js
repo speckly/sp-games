@@ -9,11 +9,15 @@ $(document).ready(function () {
         success: function (categories) {
             const container = $(".category");
             container.empty(); // Clear existing content
-            // Use forEach to iterate through the categories array
+            container.append($("<a>", {
+                href: 'shop.html',
+                class: "nav-item nav-link",
+                text: "All categories"
+            })); //All categories
             categories.forEach(function (categoryObj) {
                 const category = categoryObj.catname;
                 const anchorElement = $("<a>", {
-                    href: `shop.html?=${category}`,
+                    href: `shop.html?category=${category}`,
                     class: "nav-item nav-link",
                     text: category
                 });

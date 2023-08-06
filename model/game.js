@@ -67,23 +67,24 @@ var game = {
         })
     },
     //7: GET /game/:platform
-    getByPlatform: function(platform, callback){
+    getByPlatform: function(platform, sort, callback){
         var dbConn = db.getConnection();
         dbConn.connect(function (err) {
             if (err) {//database connection issue
                 return callback(err, null);
             } else {
+                additionalQuery = (sort == "name") ? ' ORDER BY title ASC' : ' ORDER BY created_at ASC' //else latest
                 //Note foriegn key contstraints platformid and categoryid raises exceptions if not found
-                getIDsQuery = `SELECT games.gameid, games.title, games.description,
+                getByPlatformQuery = `SELECT games.gameid, games.title, games.description,
                 gamepricing.price, platforms.platform_name AS platform, 
                 games.categoryid AS catid, categories.catname, games.year, games.created_at
                 FROM gamepricing 
                 INNER JOIN platforms ON platforms.platformid = gamepricing.platformid
                 INNER JOIN games ON gamepricing.gameid = games.gameid
                 INNER JOIN categories ON games.categoryid = categories.categoryid
-                WHERE platforms.platform_name = ?;                
+                WHERE platforms.platform_name = ?${additionalQuery};                
                 `
-                dbConn.query(getIDsQuery, platform, (err, result) => {
+                dbConn.query(getByPlatformQuery, platform, (err, result) => {
                     if (err){
                         return callback(err, null)
                     } else {
@@ -218,9 +219,16 @@ var game = {
             if (err) {//database connection issue
                 return callback(err);
             } else {
-                const getImageQuery = 
-                `SELECT gameid, title, description, categoryid, year, created_at from games WHERE gameid = ?`
-                dbConn.query(getImageQuery, gid, (err, result) => {
+                const getGameIDQuery = 
+                `SELECT games.gameid, games.title, games.description,
+                gamepricing.price, platforms.platform_name AS platform, 
+                games.categoryid AS catid, categories.catname, games.year, games.created_at
+                FROM gamepricing 
+                INNER JOIN platforms ON platforms.platformid = gamepricing.platformid
+                INNER JOIN games ON gamepricing.gameid = games.gameid
+                INNER JOIN categories ON games.categoryid = categories.categoryid
+                WHERE games.gameid = ?`
+                dbConn.query(getGameIDQuery, gid, (err, result) => {
                     dbConn.end()
                     if (err){
                         return callback(err, null)
@@ -228,7 +236,7 @@ var game = {
                     return callback(null, result[0])
                 })
             }})
-    }
+    },
 };
 
 module.exports = game;
