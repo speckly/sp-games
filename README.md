@@ -1,4 +1,7 @@
-# Backend Development Module Assignment 2, p2205810
+# Backend Development Module Assignment 2
+
+> [!WARNING]  
+> Built to demonstrate full-stack development skills rather than secure coding. Validation is not fully implemented here
 
 # Setup
 > Remote hosts are not supported 
